@@ -4,10 +4,20 @@ from sqlalchemy import select
 from .. import models, schemas, utils
 from ..database import get_db
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/users",
+    tags = ["Users"]
+)
 
-@router.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+
+    existing_user = db.scalar(select(models.User).where(models.User.email == user.email))
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"User with email {user.email} already exists"
+        )
 
     #hash the password
     hashed_password = utils.hash(user.password)
@@ -19,7 +29,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
-@router.get('/users/{id}', response_model=schemas.UserOut)
+@router.get('/{id}', response_model=schemas.UserOut)
 def get_user(id: int, db: Session = Depends(get_db)):
     
     user = db.scalar(select(models.User).where(models.User.id == id))

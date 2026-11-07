@@ -23,3 +23,7 @@ class UserOut(BaseModel):
     email: EmailStr
 
     model_config = ConfigDict(from_attributes=True)
+
+class UserLogin(BaseModel):
+    email : EmailStr
+    password : str
