@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict, EmailStr
+from typing import Optional
 import datetime
+
 class PostBase(BaseModel):
     title: str
     content: str
@@ -27,3 +29,11 @@ class UserOut(BaseModel):
 class UserLogin(BaseModel):
     email : EmailStr
     password : str
+
+class token(BaseModel):
+    access_token: str
+    token_type : str
+
+class token_data(BaseModel):
+    # id : Optional[str] = None
+    id : int
