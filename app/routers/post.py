@@ -11,13 +11,14 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=List[schemas.Post])
-def get_posts(db: Session = Depends(get_db)):
+def get_posts(db: Session = Depends(get_db), curr_user : int  = Depends(oauth2.get_current_user)):
+    print(curr_user)
     posts = db.query(models.Post).all()
     return posts
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
-def create_posts(post : schemas.PostCreate, db: Session = Depends(get_db), user_id: int  = Depends(oauth2.get_current_user)):
-    print(user_id)
+def create_posts(post : schemas.PostCreate, db: Session = Depends(get_db), curr_user: int  = Depends(oauth2.get_current_user)):
+    print(curr_user.email)
     
     new_post = models.Post(**post.model_dump())
     db.add(new_post)
@@ -26,7 +27,7 @@ def create_posts(post : schemas.PostCreate, db: Session = Depends(get_db), user_
     return new_post
 
 @router.get("/{id}", response_model=schemas.Post)
-def get_post(id: int, db: Session = Depends(get_db)):
+def get_post(id: int, db: Session = Depends(get_db), curr_user: int  = Depends(oauth2.get_current_user)):
 
     # 1. Build the select statement and execute it to fetch one post
     post = db.scalar(select(models.Post).where(models.Post.id == id))
@@ -42,7 +43,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
     return post
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id : int, db: Session = Depends(get_db), user_id: int  = Depends(oauth2.get_current_user)):
+def delete_post(id : int, db: Session = Depends(get_db), curr_user: int  = Depends(oauth2.get_current_user)):
 
     post = db.scalar(select(models.Post).where(models.Post.id == id))
     
@@ -59,7 +60,7 @@ def delete_post(id : int, db: Session = Depends(get_db), user_id: int  = Depends
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.put("/{id}", response_model=schemas.Post)
-def update_post(id : int, updated_post: schemas.PostBase, db: Session = Depends(get_db),user_id: int  = Depends(oauth2.get_current_user)):
+def update_post(id : int, updated_post: schemas.PostBase, db: Session = Depends(get_db),curr_user: int  = Depends(oauth2.get_current_user)):
     post_query = select(models.Post).where(models.Post.id == id)
     post = db.scalar(post_query)
     
@@ -77,4 +78,4 @@ def update_post(id : int, updated_post: schemas.PostBase, db: Session = Depends(
     # 4. Commit changes to the database
     db.commit()
     db.refresh(post)
-    return updated_post
+    return post
